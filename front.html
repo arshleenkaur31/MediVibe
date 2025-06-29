@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+  if (!localStorage.getItem('mediVibeLoggedIn')) {
+    window.location.href = 'front.html';
+  }
+</script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediVibe - Login / Sign Up</title>
+  <style>
+    :root {
+      --primary: #00BFFF;
+      --secondary: #8A2BE2;
+      --bg-dark: #0a0f2c;
+      --bg-light: #1b1f3c;
+      --text: #ddd;
+      --card-bg: rgba(255, 255, 255, 0.08);
+      --accent-gradient: linear-gradient(135deg, #00BFFF, #8A2BE2);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-light) 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: var(--text);
+    }
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid rgba(0,191,255,0.3);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 30px rgba(0,191,255,0.2);
+      border-radius: 1.2rem;
+      padding: 2.5rem 2rem;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .logo {
+      width: 90px;
+      height: 90px;
+      margin-bottom: 1rem;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      object-fit: cover;
+      background-color: white;
+      padding: 8px;
+      box-shadow: 0 0 15px var(--primary);
+    }
+    h2 {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    input {
+      width: 100%;
+      padding: 0.9rem 1rem;
+      margin: 0.7rem 0;
+      border-radius: 0.5rem;
+      background-color: rgba(255,255,255,0.1);
+      border: 1px solid rgba(0,191,255,0.4);
+      color: var(--text);
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 8px var(--primary);
+      background-color: rgba(255,255,255,0.15);
+    }
+    button {
+      width: 100%;
+      padding: 0.9rem 1.2rem;
+      margin-top: 1.2rem;
+      border-radius: 0.5rem;
+      border: 2px solid var(--primary);
+      background: transparent;
+      color: var(--primary);
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 0 20px var(--primary);
+    }
+    .switch-link, .forgot-link {
+      display: inline-block;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #aaa;
+      cursor: pointer;
+      text-decoration: none;
+      border-bottom: 1px dotted #00BFFF;
+    }
+    .switch-link:hover, .forgot-link:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+    .forgot-link {
+      display: block;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      text-align: right;
+    }
+    .hidden {
+      display: none;
+    }
+    .footer-note {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="https://img.icons8.com/fluency/96/stethoscope.png" alt="MediVibe Logo" class="logo">
+    <div id="loginForm">
+      <h2>🩺 MediVibe Login</h2>
+      <input type="text" placeholder="Username" id="loginUsername">
+      <input type="password" placeholder="Password" id="loginPassword">
+      <button onclick="handleLogin()">Login</button>
+      <a class="forgot-link" href="#" onclick="handleForgotPassword()">Forgot Password?</a>
+      <div class="switch-link" onclick="showSignup()">Don't have an account? Sign Up</div>
+    </div>
+    <div id="signupForm" class="hidden">
+      <h2>🩺 MediVibe Sign Up</h2>
+      <input type="text" placeholder="Username" id="signupUsername">
+      <input type="email" placeholder="Email" id="signupEmail">
+      <input type="password" placeholder="Password" id="signupPassword">
+      <button onclick="handleSignup()">Sign Up</button>
+      <div class="switch-link" onclick="showLogin()">Already have an account? Login</div>
+    </div>
+    <div class="footer-note">&copy; 2025 MediVibe. Built with ❤️ for Vibe-A-Thon.</div>
+  </div>
+
+  <script>
+    // On first load, seed demo credentials
+    window.addEventListener('load', () => {
+      if (!localStorage.getItem('mediVibeUser')) {
+        const demoUser = {
+          user: 'demoUser',
+          email: 'demo@medivibe.com',
+          pass: 'demoPass'
+        };
+        localStorage.setItem('mediVibeUser', JSON.stringify(demoUser));
+        console.log('Demo account created: demoUser / demoPass');
+      }
+    });
+
+    function showSignup() {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('signupForm').classList.remove('hidden');
+    }
+
+    function showLogin() {
+      document.getElementById('signupForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+    }
+
+    function handleSignup() {
+      const user = document.getElementById('signupUsername').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const pass = document.getElementById('signupPassword').value.trim();
+
+      if (!user || !email || !pass) {
+        alert('Please fill in all fields.');
+        return;
+      }
+
+      localStorage.setItem('mediVibeUser', JSON.stringify({ user, email, pass }));
+      alert('Account created successfully! Please log in.');
+      showLogin();
+    }
+
+    function handleLogin() {
+      const enteredUser = document.getElementById('loginUsername').value.trim();
+      const enteredPass = document.getElementById('loginPassword').value.trim();
+      const stored = JSON.parse(localStorage.getItem('mediVibeUser'));
+
+      if (!stored) {
+        alert('No user found. Please sign up first.');
+        showSignup();
+        return;
+      }
+
+      if (enteredUser === stored.user && enteredPass === stored.pass) {
+        localStorage.setItem('mediVibeLoggedIn', 'true');
+        localStorage.setItem('mediVibeCurrentUser', stored.user);
+        // Move to landing page
+        window.location.href = 'landingpage.html';
+      } else {
+        alert('Invalid username or password.');
+      }
+    }
+
+    function handleForgotPassword() {
+      const email = prompt('Enter your registered email to reset your password:');
+      const stored = JSON.parse(localStorage.getItem('mediVibeUser'));
+      if (stored && email === stored.email) {
+        alert(`Password reset link sent to ${email}`);
+      } else {
+        alert('Email not found.');
+      }
+    }
+  </script>
+</body>
+</html>

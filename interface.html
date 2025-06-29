@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MediVibe - AI Chat Assistant</title>
+  <style>
+    :root {
+      --primary: #00BFFF;
+      --secondary: #8A2BE2;
+      --bg-dark: #0a0f2c;
+      --bg-light: #1b1f3c;
+      --text: #ddd;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --accent-gradient: linear-gradient(135deg, #00BFFF, #8A2BE2);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-light) 100%);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    aside {
+      width: 250px;
+      background-color: rgba(10, 15, 44, 0.95);
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      border-right: 1px solid rgba(0,191,255,0.3);
+      overflow-y: auto;
+    }
+
+    aside h2 {
+      margin: 0 0 1rem;
+      font-size: 1.4rem;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+    }
+
+    .history {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+      background-color: var(--card-bg);
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .history-item:hover {
+      background-color: rgba(0,191,255,0.15);
+    }
+
+    .new-chat {
+      background: transparent;
+      color: #00BFFF;
+      border: 2px solid #00BFFF;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 1rem;
+    }
+
+    .new-chat:hover {
+      background: #00BFFF;
+      color: white;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      overflow: hidden;
+    }
+
+    header {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      background-image: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .chat-box {
+      flex: 1;
+      background-color: var(--card-bg);
+      border-radius: 1rem;
+      padding: 1rem;
+      overflow-y: auto;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 30px rgba(0,191,255,0.2);
+      border: 1px solid rgba(0,191,255,0.3);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      display: flex;
+      margin: 0.5rem 0;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .message .bubble {
+      padding: 0.8rem 1rem;
+      border-radius: 1rem;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+
+    .message.user {
+      justify-content: flex-end;
+    }
+
+    .message.user .bubble {
+      background: var(--accent-gradient);
+      color: white;
+      border-bottom-right-radius: 0;
+    }
+
+    .message.assistant {
+      justify-content: flex-start;
+    }
+
+    .message.assistant .bubble {
+      background-color: rgba(255,255,255,0.08);
+      border: 1px solid rgba(0,191,255,0.4);
+      backdrop-filter: blur(8px);
+      border-bottom-left-radius: 0;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .input-area input {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border-radius: 0.5rem;
+      background-color: rgba(255,255,255,0.08);
+      color: #ddd;
+      border: 1px solid rgba(0,191,255,0.3);
+      backdrop-filter: blur(6px);
+    }
+
+    .input-area button {
+      background: transparent;
+      color: #00BFFF;
+      border: 2px solid #00BFFF;
+      padding: 0.8rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 0 10px #00BFFF;
+    }
+
+    .input-area button:hover {
+      background: #00BFFF;
+      color: white;
+      box-shadow: 0 0 20px #00BFFF;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #888;
+      padding: 0.5rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <h2>🩺 MediVibe</h2>
+    <div class="history" id="history"></div>
+    <button class="new-chat" onclick="newChat()">+ New Chat</button>
+  </aside>
+
+  <main>
+    <header>
+      MediVibe AI Chat
+    </header>
+    <div class="chat-box" id="chatBox">
+      <div class="message assistant"><div class="bubble">Hello! I'm MediVibe. How can I assist you today? 🎧</div></div>
+    </div>
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Type your message...">
+      <button onclick="sendMessage()">Send</button>
+      <button onclick="startVoice()">🎤</button>
+    </div>
+    <footer>
+      &copy; 2025 MediVibe. Built for Vibe-A-Thon 💙
+    </footer>
+  </main>
+
+  <script>
+    let conversations = [];
+    let currentConversation = [];
+
+    const historyPanel = document.getElementById('history');
+    const chatBox = document.getElementById('chatBox');
+    const userInput = document.getElementById('userInput');
+
+    userInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+
+    function newChat() {
+      if (currentConversation.length) {
+        conversations.push(currentConversation);
+        renderHistory();
+      }
+      currentConversation = [];
+      chatBox.innerHTML = `<div class="message assistant"><div class="bubble">Hello! I'm MediVibe. How can I assist you today? 🎧</div></div>`;
+    }
+
+    function renderHistory() {
+      historyPanel.innerHTML = '';
+      conversations.forEach((conv, index) => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.textContent = `Chat #${index + 1}`;
+        item.onclick = () => loadConversation(index);
+        historyPanel.appendChild(item);
+      });
+    }
+
+    function loadConversation(index) {
+      currentConversation = [...conversations[index]];
+      chatBox.innerHTML = '';
+      currentConversation.forEach(({sender, text}) => appendMessage(text, sender, false));
+    }
+
+    function appendMessage(text, sender, save = true) {
+      const msg = document.createElement('div');
+      msg.className = `message ${sender}`;
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = text;
+      msg.appendChild(bubble);
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      if (save) currentConversation.push({sender, text});
+    }
+
+    function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      appendMessage(text, 'user');
+      userInput.value = '';
+      const response = assistantReply(text);
+      setTimeout(() => appendMessage(response, 'assistant'), 500);
+      speak(response);
+    }
+
+    function startVoice() {
+      if (!('webkitSpeechRecognition' in window)) {
+        alert('Your browser does not support speech recognition.');
+        return;
+      }
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        const text = event.results[0][0].transcript;
+        appendMessage(text, 'user');
+        const response = assistantReply(text);
+        setTimeout(() => appendMessage(response, 'assistant'), 500);
+        speak(response);
+      };
+    }
+
+   function assistantReply(input) {
+  let text = input
+    .toLowerCase()
+    .replace(/\b(u|ur|n)\b/g, m => ({ u: 'you', ur: 'your', n: 'and' }[m]))
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 100+ intents
+  if (/^(hi|hello|hey)/.test(text)) return "👋 Hello! How can I assist you today?";
+
+  if (/bye|goodbye|see you/.test(text)) return "👋 Goodbye! Take care of your health!";
+
+  if (/thank/.test(text)) return "😊 You're welcome! Always here for you.";
+
+  if (/how are you/.test(text)) return "🤖 I'm healthy as ever! How about you?";
+
+  if (/help/.test(text)) return "💡 I can help with booking appointments, symptom triage, setting reminders, test info, and more!";
+
+  if (/appointment|book/.test(text)) return "✅ Let's book your appointment. Please tell me the date and doctor.";
+
+  if (/available|slots|schedule/.test(text)) return "📅 Here are the next available slots: tomorrow 10am, tomorrow 4pm, day after 11am.";
+
+  if (/doctor|specialist|dermatologist|pediatrician|cardiologist/.test(text)) return "🩺 We have Dr. Smith (Cardiologist), Dr. Patel (Dermatologist), Dr. Jones (Pediatrician), Dr. Khan (General).";
+
+  if (/cancel|reschedule/.test(text)) return "🔄 Sure. Do you want to cancel or pick a new date?";
+
+  if (/remind|reminder|medicine|medication|pill/.test(text)) return "💊 Reminder set! Please tell me the time.";
+
+  if (/test|blood|scan|x-ray|mri/.test(text)) return "🧪 I can help book lab tests. Which test do you need?";
+
+  if (/result|report/.test(text)) return "📑 You can upload your report here for review.";
+
+  if (/fever|cough|cold|headache|pain/.test(text)) return "🩺 How long have you had these symptoms? Do you need a doctor?";
+
+  if (/chest pain|breathless|difficulty breathing/.test(text)) return "⚠️ This is an emergency. Please go to the nearest hospital immediately!";
+
+  if (/urgent|emergency/.test(text)) return "🚨 Call 911 or go to the ER. Your safety comes first.";
+
+  if (/mental|depression|anxiety|stress/.test(text)) return "🧠 Mental health matters. I can connect you with a counselor or book an appointment.";
+
+  if (/diet|nutrition|meal|food/.test(text)) return "🥗 I can suggest healthy meal plans or connect you with a nutritionist.";
+
+  if (/exercise|workout|fitness/.test(text)) return "💪 Stay active! I can recommend routines or track your fitness goals.";
+
+  if (/sleep|insomnia/.test(text)) return "😴 Are you having trouble sleeping? I can suggest relaxation techniques.";
+
+  if (/pregnant|pregnancy/.test(text)) return "🤰 Congratulations! I can help schedule prenatal visits or give tips.";
+
+  if (/baby|child|pediatric/.test(text)) return "👶 Pediatric care is important. Shall I help you find a child specialist?";
+
+  if (/vaccin|shot|immuni/.test(text)) return "💉 I can show vaccination schedules or help book one.";
+
+  if (/allergy|allergic/.test(text)) return "🤧 Noted. Do you need antihistamines or a specialist?";
+
+  if (/skin|rash|acne/.test(text)) return "🩹 Let me connect you with a dermatologist.";
+
+  if (/eye|vision|ophthalmologist/.test(text)) return "👁️ Eye health is vital. Shall I help you book an ophthalmologist?";
+
+  if (/ear|nose|throat|ent/.test(text)) return "👂 ENT specialist booking available. Want to proceed?";
+
+  if (/heart|cardio/.test(text)) return "❤️ Heart health matters. I can schedule with a cardiologist.";
+
+  if (/diabet/.test(text)) return "🩸 I can help you manage diabetes. Want tips or appointments?";
+
+  if (/asthma|breath/.test(text)) return "💨 Stay safe. I can help you track inhaler use or see a doctor.";
+
+  if (/bp|blood pressure/.test(text)) return "🩺 I can help you log readings or consult a doctor.";
+
+  if (/cancer|oncologist/.test(text)) return "🎗️ I can connect you to an oncologist or share resources.";
+
+  if (/covid|corona/.test(text)) return "🦠 Stay safe. Need symptoms check or testing locations?";
+
+  if (/flu|virus/.test(text)) return "🤒 Please monitor symptoms. Want to talk to a doctor?";
+
+  if (/medicine|pharmacy|drug/.test(text)) return "💊 I can find nearby pharmacies or set reminders.";
+
+  if (/ambulance/.test(text)) return "🚑 Calling an ambulance for you is the best choice in emergencies.";
+
+  if (/location|nearby|hospital/.test(text)) return "📍 Finding nearby hospitals...";
+
+  if (/insurance/.test(text)) return "🧾 Please share your provider details for claims assistance.";
+
+  if (/blood donation|donate/.test(text)) return "🩸 Thank you for your interest! I can find drives nearby.";
+
+  if (/joke|funny/.test(text)) return "😂 Why did the doctor carry a red pen? In case they needed to draw blood!";
+
+  if (/who are you|what are you/.test(text)) return "🤖 I'm MediVibe, your AI healthcare assistant!";
+
+  if (/name/.test(text)) return "📛 I'm MediVibe. What's your name?";
+
+  if (/age/.test(text)) return "🎂 I don't age, but I can track yours for medical records.";
+
+  if (/weather/.test(text)) return "☀️ I'm all about health, not weather. Try a weather app!";
+
+  if (/time/.test(text)) return `🕒 It's currently ${new Date().toLocaleTimeString()}`;
+
+  if (/date/.test(text)) return `📅 Today's date is ${new Date().toLocaleDateString()}`;
+
+  if (/how/.test(text)) return "🤔 Could you tell me more so I can help better?";
+
+  if (/why/.test(text)) return "❓ That's a good question. Let's discuss it more!";
+
+  if (/ok|okay/.test(text)) return "👍 Noted! Anything else?";
+
+  if (/fine|good/.test(text)) return "😊 That's great to hear!";
+
+  if (/bad|sad/.test(text)) return "💙 I'm here for you. Want to talk about it?";
+
+  if (/no|nah/.test(text)) return "🙌 Okay! Let me know if you need anything.";
+
+  if (/yes|yeah|yep/.test(text)) return "✅ Got it. Let's continue!";
+
+  if (/sure/.test(text)) return "👍 Alright. What's next?";
+
+  if (/maybe/.test(text)) return "🤔 Take your time! I'm here when you're ready.";
+
+  if (/idk|don't know/.test(text)) return "🧠 That's okay! Tell me what you're feeling or thinking.";
+
+  if (/lol|haha/.test(text)) return "😂 Glad you find it funny!";
+
+  if (/bored/.test(text)) return "🎲 Want to hear a joke or health tip?";
+
+  if (/sleepy|tired/.test(text)) return "😴 Rest is important. Make sure you get enough sleep.";
+
+  if (/hungry|food/.test(text)) return "🍎 Don't skip meals! Need nutrition advice?";
+
+  if (/thirsty|drink/.test(text)) return "💧 Stay hydrated! Drink some water.";
+
+  if (/love/.test(text)) return "❤️ Love is the best medicine!";
+
+  if (/hate/.test(text)) return "😟 Let's keep it positive here.";
+
+  if (/lonely/.test(text)) return "💚 I'm always here to chat.";
+
+  if (/confused/.test(text)) return "🤔 Let me know what you're unsure about.";
+
+  if (/sick|unwell/.test(text)) return "🩺 I'm sorry to hear that. Can you tell me your symptoms?";
+
+  if (/feeling/.test(text)) return "🩺 How are you feeling today? Tell me more.";
+
+  if (/plan|schedule/.test(text)) return "📅 Let's plan your health tasks. What do you need?";
+
+  if (/emergency/.test(text)) return "🚨 Please call 911 or visit your nearest hospital immediately!";
+
+  return "🤖 Sorry, I didn't quite understand. Could you rephrase or try something else?";
+}
+
+
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+</html>

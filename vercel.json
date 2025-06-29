@@ -1,0 +1,8 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/landingpage", "destination": "/landingpage.html" },
+    { "source": "/front", "destination": "/front.html" },
+    { "source": "/interface", "destination": "/interface.html" }
+  ]
+}
